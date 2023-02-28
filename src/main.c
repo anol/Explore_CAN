@@ -26,7 +26,7 @@ please refer to the "CH32V30x Evaluation Board Manual" under the CH32V307EVT\EVT
 
 u8 MACAddr[6];                                          //MAC address
 #ifdef USE_STATIC_IP
-u8 IPAddr[4] = { 192, 168, 1, 10 };                     //IP address
+u8 IPAddr[4] = { 192, 168, 1, 77 };                     //IP address
 u8 GWIPAddr[4] = { 192, 168, 1, 1 };                    //Gateway IP address
 u8 IPMask[4] = { 255, 255, 255, 0 };                    //subnet mask
 #else
@@ -91,7 +91,6 @@ void TIM2_Init(void) {
 void WCHNET_CreateTcpSocketListen(void) {
     u8 i;
     SOCK_INF TmpSocketInf;
-
     memset((void *) &TmpSocketInf, 0, sizeof(SOCK_INF));
     TmpSocketInf.SourPort = srcport;
     TmpSocketInf.ProtoType = PROTO_TYPE_TCP;
@@ -115,10 +114,10 @@ void WCHNET_DataLoopback(u8 id) {
 #if 1
     u8 i;
     u32 len;
-    u32 endAddr = SocketInf[id].RecvStartPoint + SocketInf[id].RecvBufLen;       //Receive buffer end address
-
-    if ((SocketInf[id].RecvReadPoint + SocketInf[id].RecvRemLen) >
-        endAddr) {    //Calculate the length of the received data
+    //Receive buffer end address
+    u32 endAddr = SocketInf[id].RecvStartPoint + SocketInf[id].RecvBufLen;
+    if ((SocketInf[id].RecvReadPoint + SocketInf[id].RecvRemLen) > endAddr) {
+        //Calculate the length of the received data
         len = endAddr - SocketInf[id].RecvReadPoint;
     } else {
         len = SocketInf[id].RecvRemLen;
