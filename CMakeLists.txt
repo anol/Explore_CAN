@@ -61,7 +61,7 @@ add_custom_command(TARGET ${PROJECT_NAME}.hex POST_BUILD
         COMMAND ${OBJCOPY}
         -O ihex
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.hex
+        ${PROJECT_SOURCE_DIR}/bin/${PROJECT_NAME}.hex
         )
 
 include_directories(${PROJECT_NAME}.elf
