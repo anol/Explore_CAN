@@ -21,18 +21,27 @@ please refer to the "CH32V30x Evaluation Board Manual" under the CH32V307EVT\EVT
 #include "wchnet.h"
 #include "eth_driver.h"
 
+#define USE_STATIC_IP                   1
 #define KEEPALIVE_ENABLE                1                //Enable keep alive function
 
 u8 MACAddr[6];                                          //MAC address
+#ifdef USE_STATIC_IP
 u8 IPAddr[4] = { 192, 168, 1, 10 };                     //IP address
 u8 GWIPAddr[4] = { 192, 168, 1, 1 };                    //Gateway IP address
 u8 IPMask[4] = { 255, 255, 255, 0 };                    //subnet mask
+#else
+u8 IPAddr[4] = {0, 0, 0, 0};                    //IP address
+u8 GWIPAddr[4] = {0, 0, 0, 0};                    //Gateway IP address
+u8 IPMask[4] = {0, 0, 0, 0};                    //subnet mask
+#endif
+
 u16 srcport = 1000;                                     //source port
 
 u8 SocketIdForListen;                                   //Socket for Listening
 u8 socket[WCHNET_MAX_SOCKET_NUM];                       //Save the currently connected socket
 u8 SocketRecvBuf[WCHNET_MAX_SOCKET_NUM][RECE_BUF_LEN];  //socket receive buffer
 u8 MyBuf[RECE_BUF_LEN];
+
 /*********************************************************************
  * @fn      mStopIfError
  *
@@ -42,8 +51,7 @@ u8 MyBuf[RECE_BUF_LEN];
  *
  * @return  none
  */
-void mStopIfError(u8 iError)
-{
+void mStopIfError(u8 iError) {
     if (iError == WCHNET_ERR_SUCCESS)
         return;
     printf("Error: %02X\r\n", (u16) iError);
@@ -56,9 +64,8 @@ void mStopIfError(u8 iError)
  *
  * @return  none
  */
-void TIM2_Init(void)
-{
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = { 0 };
+void TIM2_Init(void) {
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = {0};
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
@@ -81,8 +88,7 @@ void TIM2_Init(void)
  *
  * @return  none
  */
-void WCHNET_CreateTcpSocketListen(void)
-{
+void WCHNET_CreateTcpSocketListen(void) {
     u8 i;
     SOCK_INF TmpSocketInf;
 
@@ -105,17 +111,16 @@ void WCHNET_CreateTcpSocketListen(void)
  *
  * @return  none
  */
-void WCHNET_DataLoopback(u8 id)
-{
+void WCHNET_DataLoopback(u8 id) {
 #if 1
     u8 i;
     u32 len;
     u32 endAddr = SocketInf[id].RecvStartPoint + SocketInf[id].RecvBufLen;       //Receive buffer end address
 
-    if ((SocketInf[id].RecvReadPoint + SocketInf[id].RecvRemLen) > endAddr) {    //Calculate the length of the received data
+    if ((SocketInf[id].RecvReadPoint + SocketInf[id].RecvRemLen) >
+        endAddr) {    //Calculate the length of the received data
         len = endAddr - SocketInf[id].RecvReadPoint;
-    }
-    else {
+    } else {
         len = SocketInf[id].RecvRemLen;
     }
     i = WCHNET_SocketSend(id, (u8 *) SocketInf[id].RecvReadPoint, &len);        //send data
@@ -151,8 +156,7 @@ void WCHNET_DataLoopback(u8 id)
  *
  * @return  none
  */
-void WCHNET_HandleSockInt(u8 socketid, u8 intstat)
-{
+void WCHNET_HandleSockInt(u8 socketid, u8 intstat) {
     u8 i;
 
     if (intstat & SINT_STAT_RECV)                                 //receive data
@@ -165,7 +169,7 @@ void WCHNET_HandleSockInt(u8 socketid, u8 intstat)
         WCHNET_SocketSetKeepLive(socketid, ENABLE);
 #endif
         WCHNET_ModifyRecvBuf(socketid, (u32) SocketRecvBuf[socketid],
-        RECE_BUF_LEN);
+                             RECE_BUF_LEN);
         for (i = 0; i < WCHNET_MAX_SOCKET_NUM; i++) {
             if (socket[i] == 0xff) {                              //save connected socket id
                 socket[i] = socketid;
@@ -173,7 +177,7 @@ void WCHNET_HandleSockInt(u8 socketid, u8 intstat)
             }
         }
         printf("TCP Connect Success\r\n");
-        printf("socket id: %d\r\n",socket[i]);
+        printf("socket id: %d\r\n", socket[i]);
     }
     if (intstat & SINT_STAT_DISCONNECT)                           //disconnect
     {
@@ -204,8 +208,7 @@ void WCHNET_HandleSockInt(u8 socketid, u8 intstat)
  *
  * @return  none
  */
-void WCHNET_HandleGlobalInt(void)
-{
+void WCHNET_HandleGlobalInt(void) {
     u8 intstat;
     u16 i;
     u8 socketint;
@@ -235,31 +238,91 @@ void WCHNET_HandleGlobalInt(void)
 }
 
 /*********************************************************************
+ * @fn      WCHNET_DHCPCallBack
+ *
+ * @brief   DHCPCallBack
+ *
+ * @param   status - status returned by DHCP
+ *          arg - Data returned by DHCP
+ *
+ * @return  DHCP status
+ */
+u8 WCHNET_DHCPCallBack(u8 status, void *arg) {
+    u8 *p;
+    u8 tmp[4] = {0, 0, 0, 0};
+
+    if (!status) {
+        p = arg;
+        printf("DHCP Success\r\n");
+        /*If the obtained IP is the same as the last IP, exit this function.*/
+        if (!memcmp(IPAddr, p, sizeof(IPAddr)))
+            return READY;
+        /*Determine whether it is the first successful IP acquisition*/
+        if (memcmp(IPAddr, tmp, sizeof(IPAddr))) {
+            /*The obtained IP is different from the last value,
+             * then disconnect the last connection.*/
+            WCHNET_SocketClose(SocketIdForListen, TCP_CLOSE_NORMAL);
+        }
+        memcpy(IPAddr, p, 4);
+        memcpy(GWIPAddr, &p[4], 4);
+        memcpy(IPMask, &p[8], 4);
+        printf("IPAddr = %d.%d.%d.%d \r\n", (u16) IPAddr[0], (u16) IPAddr[1],
+               (u16) IPAddr[2], (u16) IPAddr[3]);
+        printf("GWIPAddr = %d.%d.%d.%d \r\n", (u16) GWIPAddr[0], (u16) GWIPAddr[1],
+               (u16) GWIPAddr[2], (u16) GWIPAddr[3]);
+        printf("IPAddr = %d.%d.%d.%d \r\n", (u16) IPMask[0], (u16) IPMask[1],
+               (u16) IPMask[2], (u16) IPMask[3]);
+        printf("DNS1: %d.%d.%d.%d \r\n", p[12], p[13], p[14], p[15]);
+        printf("DNS2: %d.%d.%d.%d \r\n", p[16], p[17], p[18], p[19]);
+
+        u8 i = ETH_LibInit(IPAddr, GWIPAddr, IPMask, MACAddr);           //Ethernet library initialize
+        mStopIfError(i);
+        if (i == WCHNET_ERR_SUCCESS)
+            printf("ETH_LibInit Success\r\n");
+
+        memset(socket, 0xff, WCHNET_MAX_SOCKET_NUM);
+        WCHNET_CreateTcpSocketListen();                               //Create TCP Socket for Listening
+
+        return READY;
+    } else {
+        printf("DHCP Fail %02x \r\n", status);
+        /*Determine whether it is the first successful IP acquisition*/
+        if (memcmp(IPAddr, tmp, sizeof(IPAddr))) {
+            /*The obtained IP is different from the last value*/
+            WCHNET_SocketClose(SocketIdForListen, TCP_CLOSE_NORMAL);
+        }
+        return NoREADY;
+    }
+}
+
+/*********************************************************************
  * @fn      main
  *
  * @brief   Main program
  *
  * @return  none
  */
-int main(void)
-{
+int main(void) {
     u8 i;
     SystemCoreClockUpdate();
     Delay_Init();
     USART_Printf_Init(115200);                                    //USART initialize
-    printf("TcpServer Test\r\n");  	
+    printf("TcpServer Test\r\n");
     printf("SystemClk:%d\r\n", SystemCoreClock);
-    printf( "ChipID:%08x\r\n", DBGMCU_GetCHIPID() );
-    printf("net version:%x\n", WCHNET_GetVer());
-    if ( WCHNET_LIB_VER != WCHNET_GetVer()) {
-        printf("version error.\n");
+    printf("ChipID:%08x\r\n", DBGMCU_GetCHIPID());
+    printf("net version:%x\r\n", WCHNET_GetVer());
+    if (WCHNET_LIB_VER != WCHNET_GetVer()) {
+        printf("version error.\r\n");
     }
     WCHNET_GetMacAddr(MACAddr);                                   //get the chip MAC address
     printf("mac addr:");
-    for(i = 0; i < 6; i++) 
-        printf("%x ",MACAddr[i]);
-    printf("\n");
+    for (i = 0; i < 6; i++)
+        printf("%x ", MACAddr[i]);
+    printf("\r\n");
     TIM2_Init();
+#ifndef USE_STATIC_IP
+    WCHNET_DHCPSetHostname("Explore_CAN");                                   //Configure DHCP host name
+#endif
     i = ETH_LibInit(IPAddr, GWIPAddr, IPMask, MACAddr);           //Ethernet library initialize
     mStopIfError(i);
     if (i == WCHNET_ERR_SUCCESS)
@@ -267,25 +330,26 @@ int main(void)
 #if KEEPALIVE_ENABLE                                               //Configure keep alive parameters
     {
         struct _KEEP_CFG cfg;
-
         cfg.KLIdle = 20000;
         cfg.KLIntvl = 15000;
         cfg.KLCount = 9;
         WCHNET_ConfigKeepLive(&cfg);
     }
 #endif
+#ifdef USE_STATIC_IP
     memset(socket, 0xff, WCHNET_MAX_SOCKET_NUM);
     WCHNET_CreateTcpSocketListen();                               //Create TCP Socket for Listening
+#else
+    WCHNET_DHCPStart(WCHNET_DHCPCallBack);                                //Start DHCP
+#endif
 
-    while(1)
-    {
+    while (1) {
         /*Ethernet library main task function,
          * which needs to be called cyclically*/
         WCHNET_MainTask();
         /*Query the Ethernet global interrupt,
          * if there is an interrupt, call the global interrupt handler*/
-        if(WCHNET_QueryGlobalInt())
-        {
+        if (WCHNET_QueryGlobalInt()) {
             WCHNET_HandleGlobalInt();
         }
     }
