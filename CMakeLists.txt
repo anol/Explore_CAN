@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_COMPILER_ID riscv)
 set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs")
 
+set(TOOLCHAIN_HOME "C:/MounRiver/MRS_Community/toolchain/RISC-V Embedded GCC" )
+set(OBJCOPY ${TOOLCHAIN_HOME}/bin/riscv-none-embed-objcopy.exe)
+
 project(Explore_CAN C ASM)
 
 add_executable(${PROJECT_NAME}.elf
@@ -48,6 +51,17 @@ add_executable(${PROJECT_NAME}.elf
         src/Peripheral/src/ch32v30x_sdio.c src/Peripheral/src/ch32v30x_spi.c src/Peripheral/src/ch32v30x_tim.c
         src/Peripheral/src/ch32v30x_usart.c src/Peripheral/src/ch32v30x_wwdg.c
 
+        )
+
+add_custom_target(${PROJECT_NAME}.hex ALL)
+
+add_dependencies(${PROJECT_NAME}.hex ${PROJECT_NAME}.elf)
+
+add_custom_command(TARGET ${PROJECT_NAME}.hex POST_BUILD
+        COMMAND ${OBJCOPY}
+        -O ihex
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.hex
         )
 
 include_directories(${PROJECT_NAME}.elf
