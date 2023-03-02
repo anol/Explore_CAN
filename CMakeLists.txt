@@ -51,7 +51,7 @@ add_executable(${PROJECT_NAME}.elf
         src/Peripheral/src/ch32v30x_sdio.c src/Peripheral/src/ch32v30x_spi.c src/Peripheral/src/ch32v30x_tim.c
         src/Peripheral/src/ch32v30x_usart.c src/Peripheral/src/ch32v30x_wwdg.c
 
-        )
+        src/Explore_CAN.cpp src/CAN_handler.cpp src/CAN_handler.h src/LAN_handler.cpp src/LAN_handler.h src/CH32_platform.cpp src/CH32_platform.h)
 
 add_custom_target(${PROJECT_NAME}.hex ALL)
 
