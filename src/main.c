@@ -64,7 +64,7 @@ void CAN_Mode_Init(u8 tsjw, u8 tbs2, u8 tbs1, u16 brp, u8 mode) {
     CAN_FilterInitTypeDef CAN_FilterInitSturcture = {0};
 
 
-    int pclk = 96000000;
+    int pclk = 96000000 / 2;
     int bps = pclk / (brp * (tbs1 + 1 + tbs2 + 1 + 1));
     printf("tsjw:%8d\r\n", tsjw);
     printf("tbs2:%8d\r\n", tbs2);
@@ -575,8 +575,7 @@ int main(void) {
 #elif (CAN_MODE == RX_MODE)
     printf( "Rx Mode\r\n" );
 #endif
-/* Bps = 333Kbps */
-    CAN_Mode_Init(CAN_SJW_1tq, CAN_BS2_5tq, CAN_BS1_6tq, 8, CAN_Mode_Normal);
+    CAN_Mode_Init(CAN_SJW_1tq, CAN_BS2_5tq, CAN_BS1_6tq, 4, CAN_Mode_Normal);
 
     printf("net version:%x\r\n", WCHNET_GetVer());
     if (WCHNET_LIB_VER != WCHNET_GetVer()) {
