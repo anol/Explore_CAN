@@ -12,7 +12,7 @@
 #ifndef __CH32V30x_CONF_H
 #define __CH32V30x_CONF_H
 
-#include <ch32v30x_it.h>
+#include "ch32v30x_it.h"
 #include "ch32v30x_adc.h"
 #include "ch32v30x_bkp.h"
 #include "ch32v30x_can.h"

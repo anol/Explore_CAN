@@ -2,7 +2,7 @@
 // Created by aeols on 02.03.2023.
 //
 
-#include "LAN_handler.h"
+#include "Handle_LAN.h"
 
 extern "C" {
 #include "string.h"
@@ -34,7 +34,7 @@ u8 SocketRecvBuf[WCHNET_MAX_SOCKET_NUM][RECE_BUF_LEN];  //socket receive buffer
 u8 MyBuf[RECE_BUF_LEN];
 
 
-void LAN_handler::initialize() {
+void Handle_LAN::initialize() {
     WCHNET_GetMacAddr(MACAddr);
     if (WCHNET_LIB_VER != WCHNET_GetVer()) {
         printf("version error.\r\n");
@@ -62,14 +62,14 @@ void LAN_handler::initialize() {
 #endif
 }
 
-void LAN_handler::print_info() const {
+void Handle_LAN::print_info() const {
     printf("net version:%x\r\n", WCHNET_GetVer());
     printf("mac addr:");
     for (unsigned char i: MACAddr) printf("%x ", i);
     printf("\r\n");
 }
 
-void LAN_handler::task() {
+void Handle_LAN::task() {
     WCHNET_MainTask();
     if (WCHNET_QueryGlobalInt()) {
         handle_interrupt();
@@ -82,7 +82,7 @@ void mStopIfError(u8 iError) {
     printf("Error: %02X\r\n", (u16) iError);
 }
 
-void LAN_handler::create_TCP_listen(void) {
+void Handle_LAN::create_TCP_listen(void) {
     u8 i;
     SOCK_INF TmpSocketInf;
     memset((void *) &TmpSocketInf, 0, sizeof(SOCK_INF));
@@ -95,7 +95,7 @@ void LAN_handler::create_TCP_listen(void) {
     mStopIfError(i);
 }
 
-void LAN_handler::loopback(u8 id) {
+void Handle_LAN::loopback(u8 id) {
 #if 1
     u8 i;
     u32 len;
@@ -130,7 +130,7 @@ void LAN_handler::loopback(u8 id) {
 #endif
 }
 
-void LAN_handler::handle_socket_interrupt(u8 socketid, u8 intstat) {
+void Handle_LAN::handle_socket_interrupt(u8 socketid, u8 intstat) {
     u8 i;
 
     if (intstat & SINT_STAT_RECV)                                 //receive data
@@ -175,7 +175,7 @@ void LAN_handler::handle_socket_interrupt(u8 socketid, u8 intstat) {
     }
 }
 
-void LAN_handler::handle_interrupt( ) {
+void Handle_LAN::handle_interrupt( ) {
     u8 intstat;
     u16 i;
     u8 socketint;
@@ -204,7 +204,7 @@ void LAN_handler::handle_interrupt( ) {
     }
 }
 
-u8 LAN_handler::DHCP_callback(u8 status, void *arg) {
+u8 Handle_LAN::DHCP_callback(u8 status, void *arg) {
     u8 *p;
     u8 tmp[4] = {0, 0, 0, 0};
 

@@ -3,17 +3,17 @@
 //
 
 
-#include "CH32_platform.h"
+#include "Handle_MCU.h"
 
-uint32_t CH32_platform::the_timex{};
+uint32_t Handle_MCU::the_timex{};
 
 extern "C" void TIM3_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
 extern "C" void TIM3_IRQHandler(void) {
-    CH32_platform::the_timex++;
+    Handle_MCU::the_timex++;
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 }
 
-void CH32_platform::initialize() {
+void Handle_MCU::initialize() {
     SystemCoreClockUpdate();
     Delay_Init();
     USART_Printf_Init(115200);                                    //USART initialize
@@ -23,12 +23,12 @@ void CH32_platform::initialize() {
     setup_TIM3();
 }
 
-void CH32_platform::print_info() const {
+void Handle_MCU::print_info() const {
     printf("SystemClk:%lu\r\n", the_clock);
     printf("ChipID:%08lx\r\n", the_chip_id);
 }
 
-void CH32_platform::setup_TIM2() {
+void Handle_MCU::setup_TIM2() {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = {0};
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
@@ -45,7 +45,7 @@ void CH32_platform::setup_TIM2() {
     NVIC_EnableIRQ(TIM2_IRQn);
 }
 
-void CH32_platform::setup_TIM3() {
+void Handle_MCU::setup_TIM3() {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = {0};
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);

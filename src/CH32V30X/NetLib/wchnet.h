@@ -15,7 +15,7 @@
 
 #include "stdint.h"
 #ifndef NET_LIB
-#include "net_config.h"
+#include "CH32V30X/net_config.h"
 #endif
 #ifdef __cplusplus
 extern "C" {

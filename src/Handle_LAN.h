@@ -2,21 +2,21 @@
 // Created by aeols on 02.03.2023.
 //
 
-#ifndef EXPLORE_CAN_LAN_HANDLER_H
-#define EXPLORE_CAN_LAN_HANDLER_H
+#ifndef EXPLORE_CAN_HANDLE_LAN_H
+#define EXPLORE_CAN_HANDLE_LAN_H
 
 
-#include "CH32_platform.h"
+#include "Handle_MCU.h"
 
-class LAN_handler {
-    CH32_platform &use_CH32;
+class Handle_LAN {
+    Handle_MCU &use_platform;
     u8 MACAddr[6]{};
     u8 IPAddr[4]{};
     u8 GWIPAddr[4]{};
     u8 IPMask[4]{};
 
 public:
-    explicit LAN_handler(CH32_platform &CH32) : use_CH32(CH32) {}
+    explicit Handle_LAN(Handle_MCU &CH32) : use_platform(CH32) {}
 
     void initialize();
 
@@ -37,4 +37,4 @@ private:
 };
 
 
-#endif //EXPLORE_CAN_LAN_HANDLER_H
+#endif //EXPLORE_CAN_HANDLE_LAN_H

@@ -10,7 +10,7 @@
 * microcontroller manufactured by Nanjing Qinheng Microelectronics.
 *******************************************************************************/
 
-#include <wchnet.h>
+#include "CH32V30X/NetLib/wchnet.h"
 #include "eth_driver.h"
 #include "ch32v30x_it.h"
 

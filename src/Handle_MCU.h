@@ -2,8 +2,8 @@
 // Created by aeols on 02.03.2023.
 //
 
-#ifndef EXPLORE_CAN_CH32_PLATFORM_H
-#define EXPLORE_CAN_CH32_PLATFORM_H
+#ifndef EXPLORE_CAN_HANDLE_MCU_H
+#define EXPLORE_CAN_HANDLE_MCU_H
 
 #include <cstdint>
 
@@ -14,7 +14,7 @@ extern "C" {
 #include "eth_driver.h"
 }
 
-class CH32_platform {
+class Handle_MCU {
     uint32_t the_chip_id{};
     uint32_t the_clock{};
 
@@ -35,4 +35,4 @@ private:
 };
 
 
-#endif //EXPLORE_CAN_CH32_PLATFORM_H
+#endif //EXPLORE_CAN_HANDLE_MCU_H

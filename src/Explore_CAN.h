@@ -6,14 +6,14 @@
 #define EXPLORE_CAN_EXPLORE_CAN_H
 
 
-#include "CAN_handler.h"
-#include "LAN_handler.h"
-#include "CH32_platform.h"
+#include "Handle_CAN.h"
+#include "Handle_LAN.h"
+#include "Handle_MCU.h"
 
 class Explore_CAN {
-    CH32_platform the_CH32{};
-    CAN_handler the_CAN{the_CH32};
-    LAN_handler the_LAN{the_CH32};
+    Handle_MCU the_CH32{};
+    Handle_CAN the_CAN{the_CH32};
+    Handle_LAN the_LAN{the_CH32};
 
 public:
     [[noreturn]] void run();

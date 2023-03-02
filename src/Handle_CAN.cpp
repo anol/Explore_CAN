@@ -2,7 +2,7 @@
 // Created by aeols on 02.03.2023.
 //
 
-#include "CAN_handler.h"
+#include "Handle_CAN.h"
 
 
 /* CAN Mode Definition */
@@ -21,18 +21,18 @@
 #define Frame_Format   Standard_Frame
 //#define Frame_Format   Extended_Frame
 
-CAN_handler::CAN_handler(CH32_platform &CH32) :
+Handle_CAN::Handle_CAN(Handle_MCU &CH32) :
         use_CH32(CH32),
         tsjw(CAN_SJW_1tq),
         tbs2(CAN_BS2_5tq),
         tbs1(CAN_BS1_6tq),
         brp(4) {}
 
-void CAN_handler::initialize() {
+void Handle_CAN::initialize() {
     setup_CAN(CAN_Mode_Normal);
 }
 
-void CAN_handler::print_info() const {
+void Handle_CAN::print_info() const {
 #if (CAN_MODE == TX_MODE)
     printf("Tx Mode\r\n");
 #elif (CAN_MODE == RX_MODE)
@@ -49,7 +49,7 @@ void CAN_handler::print_info() const {
 
 }
 
-void CAN_handler::task() {
+void Handle_CAN::task() {
     u8 i;
     u8 cnt = 1;
     u8 px;
@@ -95,7 +95,7 @@ void CAN_handler::task() {
 
 }
 
-u8 CAN_handler::transmit(u8 *msg, u8 len, u32 id, bool extended) {
+u8 Handle_CAN::transmit(u8 *msg, u8 len, u32 id, bool extended) {
     u8 mbox;
     u16 i = 0;
 
@@ -123,7 +123,7 @@ u8 CAN_handler::transmit(u8 *msg, u8 len, u32 id, bool extended) {
     }
 }
 
-u8 CAN_handler::receive(u8 *buf) {
+u8 Handle_CAN::receive(u8 *buf) {
     u8 i;
 
     CanRxMsg CanRxStructure;
@@ -141,7 +141,7 @@ u8 CAN_handler::receive(u8 *buf) {
     return CanRxStructure.DLC;
 }
 
-void CAN_handler::setup_CAN(u8 mode) {
+void Handle_CAN::setup_CAN(u8 mode) {
     GPIO_InitTypeDef GPIO_InitSturcture = {0};
     CAN_InitTypeDef CAN_InitSturcture = {0};
     CAN_FilterInitTypeDef CAN_FilterInitSturcture = {0};

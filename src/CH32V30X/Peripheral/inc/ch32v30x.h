@@ -183,7 +183,7 @@ typedef enum IRQn
 
 #include <stdint.h>
 #include "core_riscv.h"
-#include "system_ch32v30x.h"
+#include "CH32V30X/system_ch32v30x.h"
 
 
 /* Standard Peripheral Library old definitions (maintained for legacy purpose) */
@@ -5231,7 +5231,7 @@ typedef struct
 
 
 
-#include "ch32v30x_conf.h"
+#include "CH32V30X/ch32v30x_conf.h"
 
 
 #ifdef __cplusplus

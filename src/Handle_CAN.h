@@ -2,21 +2,21 @@
 // Created by aeols on 02.03.2023.
 //
 
-#ifndef EXPLORE_CAN_CAN_HANDLER_H
-#define EXPLORE_CAN_CAN_HANDLER_H
+#ifndef EXPLORE_CAN_HANDLE_CAN_H
+#define EXPLORE_CAN_HANDLE_CAN_H
 
 
-#include "CH32_platform.h"
+#include "Handle_MCU.h"
 
-class CAN_handler {
-    CH32_platform &use_CH32;
+class Handle_CAN {
+    Handle_MCU &use_CH32;
     uint32_t the_next_time{};
     u8 tsjw;
     u8 tbs2;
     u8 tbs1;
     u16 brp;
 public:
-    explicit CAN_handler(CH32_platform &CH32);
+    explicit Handle_CAN(Handle_MCU &CH32);
 
     void initialize();
 
@@ -33,4 +33,4 @@ private:
 };
 
 
-#endif //EXPLORE_CAN_CAN_HANDLER_H
+#endif //EXPLORE_CAN_HANDLE_CAN_H
