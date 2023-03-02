@@ -16,12 +16,14 @@ receives data and sends back after connecting to a client.
 For details on the selection of engineering chips,
 please refer to the "CH32V30x Evaluation Board Manual" under the CH32V307EVT\EVT\PUB folder.
  */
+
+extern "C" {
 #include <stdbool.h>
 #include "string.h"
 #include "debug.h"
 #include "wchnet.h"
 #include "eth_driver.h"
-
+}
 
 
 /* CAN Mode Definition */
@@ -279,9 +281,6 @@ void TIM3_Init(void) {
     NVIC_EnableIRQ(TIM3_IRQn);
 }
 
-void TIM3_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
-
-static int timex = 0;
 
 /*********************************************************************
  * @fn      TIM3_IRQHandler
@@ -290,7 +289,9 @@ static int timex = 0;
  *
  * @return  none
  */
-void TIM3_IRQHandler(void) {
+extern "C" void TIM3_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+static int timex = 0;
+extern "C" void TIM3_IRQHandler(void) {
     timex++;
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 }
@@ -465,7 +466,7 @@ u8 WCHNET_DHCPCallBack(u8 status, void *arg) {
     u8 tmp[4] = {0, 0, 0, 0};
 
     if (!status) {
-        p = arg;
+        p = static_cast<u8 *>(arg);
         printf("DHCP Success\r\n");
         /*If the obtained IP is the same as the last IP, exit this function.*/
         if (!memcmp(IPAddr, p, sizeof(IPAddr)))
@@ -560,7 +561,7 @@ void do_CAN_task() {
  *
  * @return  none
  */
-int main(void) {
+extern "C" int main(void) {
     u8 i;
 
     SystemCoreClockUpdate();

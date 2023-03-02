@@ -12,13 +12,13 @@ set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs")
 set(TOOLCHAIN_HOME "C:/MounRiver/MRS_Community/toolchain/RISC-V Embedded GCC" )
 set(OBJCOPY ${TOOLCHAIN_HOME}/bin/riscv-none-embed-objcopy.exe)
 
-project(Explore_CAN C ASM)
+project(Explore_CAN CXX C ASM)
 
 add_executable(${PROJECT_NAME}.elf
         src/ch32v30x_conf.h
         src/ch32v30x_it.c
         src/ch32v30x_it.h
-        src/main.c
+        src/main.cpp
         src/net_config.h
         src/system_ch32v30x.c
         src/system_ch32v30x.h
