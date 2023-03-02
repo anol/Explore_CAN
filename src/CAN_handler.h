@@ -11,16 +11,21 @@
 class CAN_handler {
     CH32_platform &use_CH32;
     uint32_t the_next_time{};
-
+    u8 tsjw;
+    u8 tbs2;
+    u8 tbs1;
+    u16 brp;
 public:
-    explicit CAN_handler(CH32_platform &CH32) : use_CH32(CH32) {}
+    explicit CAN_handler(CH32_platform &CH32);
 
     void initialize();
+
+    void print_info() const;
 
     void task();
 
 private:
-    void setup_CAN(u8 tsjw, u8 tbs2, u8 tbs1, u16 brp, u8 mode);
+    void setup_CAN(u8 mode);
 
     u8 transmit(u8 *msg, u8 len, u32 id, bool extended);
 

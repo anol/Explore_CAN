@@ -16,7 +16,7 @@ class Explore_CAN {
     LAN_handler the_LAN{the_CH32};
 
 public:
-    void run();
+    [[noreturn]] void run();
 };
 
 

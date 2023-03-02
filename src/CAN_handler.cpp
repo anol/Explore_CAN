@@ -21,14 +21,31 @@
 #define Frame_Format   Standard_Frame
 //#define Frame_Format   Extended_Frame
 
-void CAN_handler::initialize() {
+CAN_handler::CAN_handler(CH32_platform &CH32) :
+        use_CH32(CH32),
+        tsjw(CAN_SJW_1tq),
+        tbs2(CAN_BS2_5tq),
+        tbs1(CAN_BS1_6tq),
+        brp(4) {}
 
+void CAN_handler::initialize() {
+    setup_CAN(CAN_Mode_Normal);
+}
+
+void CAN_handler::print_info() const {
 #if (CAN_MODE == TX_MODE)
     printf("Tx Mode\r\n");
 #elif (CAN_MODE == RX_MODE)
     printf( "Rx Mode\r\n" );
 #endif
-    setup_CAN(CAN_SJW_1tq, CAN_BS2_5tq, CAN_BS1_6tq, 4, CAN_Mode_Normal);
+
+    int pclk = 96000000 / 2;
+    int bps = pclk / (brp * (tbs1 + 1 + tbs2 + 1 + 1));
+    printf("tsjw:%8d\r\n", tsjw);
+    printf("tbs2:%8d\r\n", tbs2);
+    printf("tbs1:%8d\r\n", tbs1);
+    printf("brp: %8d\r\n", brp);
+    printf("bps= %8d\r\n", bps);
 
 }
 
@@ -124,20 +141,10 @@ u8 CAN_handler::receive(u8 *buf) {
     return CanRxStructure.DLC;
 }
 
-void CAN_handler::setup_CAN(u8 tsjw, u8 tbs2, u8 tbs1, u16 brp, u8 mode) {
+void CAN_handler::setup_CAN(u8 mode) {
     GPIO_InitTypeDef GPIO_InitSturcture = {0};
     CAN_InitTypeDef CAN_InitSturcture = {0};
     CAN_FilterInitTypeDef CAN_FilterInitSturcture = {0};
-
-
-    int pclk = 96000000 / 2;
-    int bps = pclk / (brp * (tbs1 + 1 + tbs2 + 1 + 1));
-    printf("tsjw:%8d\r\n", tsjw);
-    printf("tbs2:%8d\r\n", tbs2);
-    printf("tbs1:%8d\r\n", tbs1);
-    printf("brp: %8d\r\n", brp);
-    printf("bps= %8d\r\n", bps);
-
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
