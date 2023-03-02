@@ -16,6 +16,7 @@ receives data and sends back after connecting to a client.
 For details on the selection of engineering chips,
 please refer to the "CH32V30x Evaluation Board Manual" under the CH32V307EVT\EVT\PUB folder.
  */
+#include <stdbool.h>
 #include "string.h"
 #include "debug.h"
 #include "wchnet.h"
@@ -61,6 +62,16 @@ void CAN_Mode_Init(u8 tsjw, u8 tbs2, u8 tbs1, u16 brp, u8 mode) {
     GPIO_InitTypeDef GPIO_InitSturcture = {0};
     CAN_InitTypeDef CAN_InitSturcture = {0};
     CAN_FilterInitTypeDef CAN_FilterInitSturcture = {0};
+
+
+    int pclk = 96000000;
+    int bps = pclk / (brp * (tbs1 + 1 + tbs2 + 1 + 1));
+    printf("tsjw:%8d\r\n", tsjw);
+    printf("tbs2:%8d\r\n", tbs2);
+    printf("tbs1:%8d\r\n", tbs1);
+    printf("brp: %8d\r\n", brp);
+    printf("bps= %8d\r\n", bps);
+
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
@@ -127,22 +138,13 @@ void CAN_Mode_Init(u8 tsjw, u8 tbs2, u8 tbs1, u16 brp, u8 mode) {
  * @return  0 - Send successful.
  *          1 - Send failed.
  */
-u8 CAN_Send_Msg(u8 *msg, u8 len) {
+u8 CAN_Send_Msg(u8 *msg, u8 len, u32 id, bool extended) {
     u8 mbox;
     u16 i = 0;
 
     CanTxMsg CanTxStructure;
-
-#if (Frame_Format == Standard_Frame)
-    CanTxStructure.StdId = 0x317;
-    CanTxStructure.IDE = CAN_Id_Standard;
-
-#elif (Frame_Format == Extended_Frame)
-    CanTxStructure.ExtId = 0x12124567;
-    CanTxStructure.IDE = CAN_Id_Extended;
-
-#endif
-
+    CanTxStructure.IDE = extended ? CAN_Id_Extended : CAN_Id_Standard;
+    CanTxStructure.StdId = id;
     CanTxStructure.RTR = CAN_RTR_Data;
     CanTxStructure.DLC = len;
 
@@ -512,21 +514,30 @@ void do_CAN_task() {
     u8 px;
     u8 pxbuf[8];
     static int next_time = 0;
+
+#if (Frame_Format == Standard_Frame)
+    u32 id = 0x317;
+    bool extended = false;
+#elif (Frame_Format == Extended_Frame)
+    u32 id = 0x12124567;
+    bool extended = true;
+#endif
+
 #if (CAN_MODE == TX_MODE)
     if (timex > next_time) {
         next_time = timex + 100;
         for (i = 0; i < 8; i++) {
             pxbuf[i] = cnt + i;
         }
-        px = CAN_Send_Msg(pxbuf, 8);
+        px = CAN_Send_Msg(pxbuf, 8, id, extended);
         if (px) {
             printf("Send Failed\r\n");
         } else {
-            printf("Send Success\r\n");
-            printf("Send Data:\r\n");
+            printf("Send Data: ");
             for (i = 0; i < 8; i++) {
-                printf("%02x\r\n", pxbuf[i]);
+                printf("%02x ", pxbuf[i]);
             }
+            printf("\r\n");
         }
     }
 #elif (CAN_MODE == RX_MODE)
@@ -565,7 +576,7 @@ int main(void) {
     printf( "Rx Mode\r\n" );
 #endif
 /* Bps = 333Kbps */
-    CAN_Mode_Init(CAN_SJW_1tq, CAN_BS2_5tq, CAN_BS1_6tq, 12, CAN_Mode_Normal);
+    CAN_Mode_Init(CAN_SJW_1tq, CAN_BS2_5tq, CAN_BS1_6tq, 8, CAN_Mode_Normal);
 
     printf("net version:%x\r\n", WCHNET_GetVer());
     if (WCHNET_LIB_VER != WCHNET_GetVer()) {
